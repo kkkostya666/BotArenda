@@ -79,5 +79,22 @@ async def get_1_keyboard():
                 text="Забронировать ✔️",
                 callback_data="create_order"
             ),
+            types.InlineKeyboardButton(
+                text="Следующая ➡️",
+                callback_data="next_1"
+            ),
+        ]]
+    )
+async def get_2_keyboard():
+    return types.InlineKeyboardMarkup(
+        inline_keyboard=[[
+            types.InlineKeyboardButton(
+                text="Забронировать ✔️",
+                callback_data="create_order"
+            ),
+            types.InlineKeyboardButton(
+                text="Следующая ➡️",
+                callback_data="next_2"
+            ),
         ]]
     )

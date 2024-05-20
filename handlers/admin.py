@@ -11,7 +11,7 @@ from aiogram import F
 router = Router()
 bd = Db()
 
-ALLOWED_USER_ID = "382515551"
+ALLOWED_USER_ID = "1383157406"
 
 
 @router.message(Command("admin"))

@@ -6,13 +6,15 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from state import UserState
 from keyboards.inline.start import get_start_keyboard, get_order_keyboard, get_order_keyboard_user, get_sity_keyboard, \
-    get_1_keyboard
+    get_1_keyboard, get_2_keyboard
 from aiogram import F
 from bd import Db
 
 router = Router()
 bd = Db()
 current_index = 0
+index = 0
+index_1 = 0
 
 
 @router.message(CommandStart())
@@ -85,6 +87,7 @@ async def floor(msg: types.Message, state: FSMContext):
             await msg.answer(
                 "<b>Квартира предварителньо забронирована! Дождитесь ответа менеджера</b>\n\n<i>Статус: 🕐 На рассмотрении</i>",
                 reply_markup=await get_order_keyboard_user())
+            await state.clear()
         except ValueError as e:
             await msg.answer(f"К сожалению на эту дату квартира уже забронирована.")
     else:
@@ -113,10 +116,10 @@ async def create_order(callback: types.CallbackQuery, state: FSMContext):
 
 @router.callback_query(F.data == "1")
 async def create_order(callback: types.CallbackQuery, state: FSMContext):
-    global current_index
+    global index
     results = bd.select_home_by_address("Приволжский")
     if results:
-        result = results[current_index]
+        result = results[index]
         formatted_text = f"📍 <b>Адрес:</b> <i>{result[1]}</i>\n\n{result[4]}\n<b>{result[2]} квадратных метров</b>\n💰 <b>Цена:</b> {result[3]}"
         await callback.message.answer(formatted_text, reply_markup=await get_1_keyboard())
     else:
@@ -130,6 +133,45 @@ async def create_order(callback: types.CallbackQuery, state: FSMContext):
     if results:
         result = results[current_index]
         formatted_text = f"📍 <b>Адрес:</b> <i>{result[1]}</i>\n\n{result[4]}\n<b>{result[2]} квадратных метров</b>\n💰 <b>Цена:</b> {result[3]}"
-        await callback.message.answer(formatted_text, reply_markup=await get_1_keyboard())
+        await callback.message.answer(formatted_text, reply_markup=await get_2_keyboard())
     else:
         await callback.message.answer("No data available")
+
+
+@router.callback_query(F.data == "next_1")
+async def create_order(callback: types.CallbackQuery):
+    global index
+    index += 1
+    results = bd.select_home_by_address("Приволжский")
+    if results and index < len(results):
+        result = results[index]
+        formatted_text = f"📍 <b>Адрес:</b> <i>{result[1]}</i>\n\n{result[4]}\n<b>{result[2]} квадратных метров</b>\n💰 <b>Цена:</b> {result[3]}"
+        await callback.message.edit_text(formatted_text, reply_markup=await get_1_keyboard())
+    else:
+        index = 0
+        results = bd.select_home_by_address("Приволжский")
+        if results:
+            result = results[index]
+            formatted_text = f"📍 <b>Адрес:</b> <i>{result[1]}</i>\n\n{result[4]}\n<b>{result[2]} квадратных метров</b>\n💰 <b>Цена:</b> {result[3]}"
+            await callback.message.edit_text(formatted_text, reply_markup=await get_1_keyboard())
+        else:
+            await callback.message.edit_text("No data available")
+
+@router.callback_query(F.data == "next_2")
+async def create_order(callback: types.CallbackQuery):
+    global index_1
+    index_1 += 1
+    results = bd.select_home_by_address("Новосавинский")
+    if results and index_1 < len(results):
+        result = results[index_1]
+        formatted_text = f"📍 <b>Адрес:</b> <i>{result[1]}</i>\n\n{result[4]}\n<b>{result[2]} квадратных метров</b>\n💰 <b>Цена:</b> {result[3]}"
+        await callback.message.edit_text(formatted_text, reply_markup=await get_2_keyboard())
+    else:
+        index_1 = 0
+        results = bd.select_home_by_address("Новосавинский")
+        if results:
+            result = results[index_1]
+            formatted_text = f"📍 <b>Адрес:</b> <i>{result[1]}</i>\n\n{result[4]}\n<b>{result[2]} квадратных метров</b>\n💰 <b>Цена:</b> {result[3]}"
+            await callback.message.edit_text(formatted_text, reply_markup=await get_2_keyboard())
+        else:
+            await callback.message.edit_text("No data available")
